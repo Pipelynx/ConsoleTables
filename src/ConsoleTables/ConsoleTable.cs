@@ -266,7 +266,7 @@ namespace ConsoleTables
             if (value == null)
                 return 0;
 
-            var length = value.ToCharArray().Sum(c => UnicodeCalculator.GetWidth(c));
+            var length = AnsiRegex.Replace(value, "").ToCharArray().Sum(GetCharWidth);
             return length;
         }
 
@@ -359,14 +359,15 @@ namespace ConsoleTables
                 : "-";
         }
 
+        private static int GetCharWidth(char c) => UnicodeCalculator.GetWidth(c);
+
         private List<int> ColumnLengths()
         {
-            int charWidth(char c) => UnicodeCalculator.GetWidth(c);
             var columnLengths = Columns
                 .Select((t, i) => Rows.Select(x => x[i])
                     .Union(new[] { Columns[i] })
                     .Where(x => x != null)
-                    .Max(x => AnsiRegex.Replace(x.ToString(), "").ToCharArray().Sum(charWidth)))
+                    .Max(x => AnsiRegex.Replace(x.ToString(), "").ToCharArray().Sum(GetCharWidth)))
                 .ToList();
             return columnLengths;
         }
