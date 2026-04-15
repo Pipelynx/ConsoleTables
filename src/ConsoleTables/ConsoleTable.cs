@@ -11,6 +11,8 @@ namespace ConsoleTables
 {
     public class ConsoleTable
     {
+        private static readonly Regex AnsiRegex = new Regex(@"\e\[[0-9;]*m", RegexOptions.Compiled);
+
         public IList<object> Columns { get; }
         public IList<object[]> Rows { get; }
 
@@ -359,11 +361,12 @@ namespace ConsoleTables
 
         private List<int> ColumnLengths()
         {
+            int charWidth(char c) => UnicodeCalculator.GetWidth(c);
             var columnLengths = Columns
                 .Select((t, i) => Rows.Select(x => x[i])
                     .Union(new[] { Columns[i] })
                     .Where(x => x != null)
-                    .Select(x => x.ToString().ToCharArray().Sum(c => UnicodeCalculator.GetWidth(c))).Max())
+                    .Max(x => AnsiRegex.Replace(x.ToString(), "").ToCharArray().Sum(charWidth)))
                 .ToList();
             return columnLengths;
         }
